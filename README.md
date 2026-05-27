@@ -1,74 +1,74 @@
 # Bambu MCP (Fork)
 
-[Bambu Lab](https://bambulab.com/) 3D 프린터를 Claude Desktop에서 AI로 제어하기 위한 [MCP(Model Context Protocol)](https://modelcontextprotocol.io/) 서버입니다.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for controlling Bambu Lab 3D printers from Claude Desktop.
 
-> 원본 레포: [griches/bambu-mcp](https://github.com/griches/bambu-mcp)
+> Original repo: [griches/bambu-mcp](https://github.com/griches/bambu-mcp)
 
-## 이 포크에서 추가/수정된 사항
+## What this fork adds
 
-- **H2D 프린터 지원** — FTP URL, 캘리브레이션 필드, 듀얼 노즐 오프셋 보정
-- **3MF 플레이트 자동 감지** — 멀티 플레이트 3MF 파일에서 올바른 플레이트 번호를 자동 선택
-- **AMS 필라멘트 자동 매핑** — 3MF 파일의 필라멘트 색상과 프린터 트레이를 자동 매칭
-- **연결 안정성 개선** — MCP 서버를 프린터 연결 전에 시작, 연결 타임아웃 추가
-- **프린트 시작 최적화** — flow/vibration 캘리브레이션 기본값 비활성화로 빠른 시작
+- **Beginner-friendly setup guide** for first-time MCP and npm users
+- **Printer connection reference** (`bambu-printers.md`) for quick registration across environments
+- **Claude Desktop config example** (`claude_desktop_config.json`)
 
-## 지원 프린터
+All printer features (H2D support, AMS auto-mapping, plate auto-detection, etc.) come from the original repo.
 
-| 프린터 | 테스트 완료 |
-|--------|:---------:|
-| Bambu Lab P1S | O |
-| Bambu Lab X1E | O |
-| Bambu Lab H2D | O |
-| Bambu Lab A1 Mini | O |
+## Supported Printers
 
-Bambu Lab의 MQTT over LAN을 지원하는 모든 프린터(X1C, X1, P1P, A1 등)에서 동작합니다.
+| Printer | Tested |
+|---------|:------:|
+| Bambu Lab P1S | Yes |
+| Bambu Lab X1E | Yes |
+| Bambu Lab H2D | Yes |
+| Bambu Lab A1 Mini | Yes |
+
+Should work with any Bambu Lab printer that supports MQTT over LAN (X1C, X1, P1P, A1, etc.).
 
 ---
 
-## 설치 가이드 (처음부터 따라하기)
+## Setup Guide (Step by Step)
 
-### 1단계: Node.js 설치
+### Step 1: Install Node.js
 
-MCP 서버를 실행하려면 Node.js 18 이상이 필요합니다.
+The MCP server requires Node.js 18 or later.
 
-1. [Node.js 공식 사이트](https://nodejs.org/)에서 **LTS 버전**을 다운로드합니다
-2. 설치 파일을 실행하고, 기본 옵션 그대로 **Next**를 눌러 설치를 완료합니다
-3. 설치가 끝나면 터미널(PowerShell 또는 명령 프롬프트)을 **새로 열고** 아래 명령어로 확인합니다:
+1. Download the **LTS version** from [nodejs.org](https://nodejs.org/)
+2. Run the installer with default options
+3. Open a **new** terminal (PowerShell or Command Prompt) and verify:
 
 ```powershell
-node --version    # v18.x.x 이상이면 OK
-npm --version     # 숫자가 나오면 OK
+node --version    # v18.x.x or higher
+npm --version     # any number is fine
 ```
 
-> 이미 Node.js가 설치되어 있다면 이 단계는 건너뛰세요.
+> Skip this step if Node.js is already installed.
 
-### 2단계: 소스 코드 다운로드 및 빌드
+### Step 2: Clone and Build
 
 ```powershell
-# 원하는 폴더로 이동
-cd C:\Users\사용자이름\Desktop
+# Navigate to your preferred directory
+cd C:\Users\YourName\Desktop
 
-# 레포 클론
+# Clone this repo
 git clone https://github.com/coport-uni/bambu-mcp.git
 
-# 폴더 진입
+# Enter the directory
 cd bambu-mcp
 
-# 의존성 설치
+# Install dependencies
 npm install
 
-# TypeScript 빌드
+# Build
 npm run build
 ```
 
-빌드가 성공하면 `dist/index.js` 파일이 생성됩니다. 이 파일의 **절대 경로**를 다음 단계에서 사용합니다.
+A successful build creates `dist/index.js`. You'll need the **absolute path** to this file in the next step.
 
-### 3단계: Claude Desktop에 MCP 서버 등록
+### Step 3: Register the MCP Server in Claude Desktop
 
-1. Claude Desktop을 열고 **설정(Settings)** 으로 이동합니다
-2. 왼쪽 메뉴에서 **Developer** 탭을 클릭합니다
-3. **Edit Config** 버튼을 눌러 `claude_desktop_config.json` 파일을 엽니다
-4. 아래 내용을 붙여넣고, 경로를 자신의 환경에 맞게 수정합니다:
+1. Open Claude Desktop and go to **Settings**
+2. Click the **Developer** tab on the left
+3. Click **Edit Config** to open `claude_desktop_config.json`
+4. Paste the following, replacing the path with your own:
 
 ```json
 {
@@ -76,173 +76,171 @@ npm run build
     "bambu": {
       "command": "node",
       "args": [
-        "C:\\Users\\사용자이름\\Desktop\\bambu-mcp\\dist\\index.js"
+        "C:\\Users\\YourName\\Desktop\\bambu-mcp\\dist\\index.js"
       ]
     }
   }
 }
 ```
 
-> **경로 구분자**: Windows에서는 `\\` (역슬래시 두 개)를 사용합니다.
+> **Windows paths** use `\\` (double backslash) in JSON.
 
-5. 파일을 저장한 뒤 **Claude Desktop을 완전히 종료하고 다시 실행**합니다
+5. Save the file, then **fully quit and relaunch** Claude Desktop
 
-### 4단계: MCP 연결 확인
+### Step 4: Verify the Connection
 
-Claude Desktop을 다시 열면, 채팅 입력창 아래에 **망치 아이콘(MCP Tools)** 이 나타납니다. 아이콘을 클릭하면 `bambu`로 시작하는 도구 목록이 보여야 합니다.
+After relaunching Claude Desktop, look for the **hammer icon (MCP Tools)** below the chat input. Click it — you should see tools starting with `bambu`.
 
-> 아이콘이 안 보이면: 설정 > Developer에서 config 경로가 맞는지, Node.js 경로에 문제가 없는지 확인하세요.
-
----
-
-## 프린터 설정 (프린터 측)
-
-MCP 서버가 프린터와 통신하려면, 프린터에서 아래 설정을 먼저 해야 합니다:
-
-### LAN Only 모드 활성화
-
-프린터 터치스크린에서 **설정 > 네트워크**로 이동하여 **LAN Only Mode**를 켭니다.
-
-> LAN Only 모드를 켜면 Bambu Handy 앱 등 클라우드 기능을 사용할 수 없습니다. 모든 제어는 로컬 네트워크에서만 가능합니다.
-
-### Developer 모드 활성화
-
-**설정 > 네트워크 > LAN Only Mode** 화면에서 **Developer Mode**를 켭니다.
-
-### 연결 정보 메모
-
-다음 3가지를 메모해 둡니다:
-
-| 정보 | 확인 위치 |
-|------|----------|
-| **IP 주소** | 설정 > WLAN (또는 Bambu Studio 기기 탭) |
-| **Access Code** | 설정 > WLAN (Developer Mode 활성화 후 표시) |
-| **Serial Number** | 설정 > Device (또는 프린터 뒷면 라벨) |
+> If the icon doesn't appear: check that the path in your config is correct and that `node dist/index.js` runs without errors in a terminal.
 
 ---
 
-## 프린터 등록 (Claude Desktop에서)
+## Printer Setup (On the Printer)
 
-MCP 서버가 정상 작동하면, Claude에게 자연어로 프린터를 등록할 수 있습니다:
+Before the MCP server can communicate with your printer:
+
+### Enable LAN Only Mode
+
+On the printer's touchscreen, go to **Settings > Network** and enable **LAN Only Mode**.
+
+> Enabling LAN Only Mode disables cloud features (Bambu Handy app, cloud printing). All control is local only.
+
+### Enable Developer Mode
+
+On the **Settings > Network > LAN Only Mode** screen, enable **Developer Mode**.
+
+### Note Your Connection Details
+
+| Info | Where to Find |
+|------|--------------|
+| **IP Address** | Settings > WLAN (or Bambu Studio Device tab) |
+| **Access Code** | Settings > WLAN (shown after enabling Developer Mode) |
+| **Serial Number** | Settings > Device (or label on the printer) |
+
+---
+
+## Register a Printer (In Claude Desktop)
+
+Once the MCP server is running, ask Claude in natural language:
 
 ```
-프린터를 등록해줘.
+Register a printer.
 - IP: 192.168.1.235
 - Access Code: 30430928
 - Serial: 01P00A3B0900744
 - Model: P1S
-- Name: 내 프린터
+- Name: My Printer
 ```
 
-등록된 프린터 정보는 `~/.bambu-mcp/printers.json`에 저장되며, 서버를 재시작해도 자동으로 재연결됩니다.
+Printer configs are saved to `~/.bambu-mcp/printers.json` and automatically reconnect on server restart.
 
 ---
 
-## 사용할 수 있는 도구 목록
+## Available Tools
 
-### 프린터 관리
+### Printer Management
 
-| 도구 | 설명 |
-|------|------|
-| `add_printer` | 프린터 등록 (IP, 액세스 코드, 시리얼) |
-| `remove_printer` | 프린터 제거 |
-| `reconnect_printer` | 프린터 재연결 (네트워크 변경 후 등) |
-| `list_printers` | 등록된 프린터 목록 및 연결 상태 |
+| Tool | Description |
+|------|-------------|
+| `add_printer` | Register a printer (IP, access code, serial) |
+| `remove_printer` | Remove a printer |
+| `reconnect_printer` | Reconnect after network changes |
+| `list_printers` | List registered printers and connection status |
 
-### 상태 확인
+### Status
 
-| 도구 | 설명 |
-|------|------|
-| `get_status` | 출력 진행률, 온도, 속도, AMS 상태, 조명 |
-| `get_version` | 펌웨어 및 모듈 버전 정보 |
+| Tool | Description |
+|------|-------------|
+| `get_status` | Print progress, temperatures, speed, AMS, lights |
+| `get_version` | Firmware and module version info |
 
-### 출력 제어
+### Print Control
 
-| 도구 | 설명 |
-|------|------|
-| `start_print` | SD 카드의 파일로 출력 시작 (3MF 플레이트 자동 감지) |
-| `pause_print` | 출력 일시정지 |
-| `resume_print` | 일시정지된 출력 재개 |
-| `stop_print` | 출력 취소 |
-| `skip_objects` | 멀티 오브젝트 출력에서 특정 오브젝트 건너뛰기 |
+| Tool | Description |
+|------|-------------|
+| `start_print` | Start printing from SD card (auto-detects 3MF plate) |
+| `pause_print` | Pause current print |
+| `resume_print` | Resume paused print |
+| `stop_print` | Cancel current print |
+| `skip_objects` | Skip specific objects in a multi-object print |
 
-### 하드웨어 제어
+### Hardware
 
-| 도구 | 설명 |
-|------|------|
-| `set_speed` | 출력 속도 변경 (silent, standard, sport, ludicrous) |
-| `set_light` | 챔버/작업 조명 on/off |
-| `set_temperature` | 노즐/베드 온도 설정 (안전 제한 포함) |
-| `set_nozzle` | 노즐 직경 설정 |
+| Tool | Description |
+|------|-------------|
+| `set_speed` | Change print speed (silent, standard, sport, ludicrous) |
+| `set_light` | Toggle chamber/work lights |
+| `set_temperature` | Set nozzle/bed temperature (with safety limits) |
+| `set_nozzle` | Set nozzle diameter |
 
-### 파일 관리
+### File Management
 
-| 도구 | 설명 |
-|------|------|
-| `list_files` | SD 카드 파일 목록 |
-| `upload_file` | 3MF/G-code 파일 업로드 |
-| `download_file` | 파일 다운로드 |
-| `delete_file` | 파일 삭제 |
+| Tool | Description |
+|------|-------------|
+| `list_files` | List files on SD card |
+| `upload_file` | Upload .3mf or .gcode file |
+| `download_file` | Download a file |
+| `delete_file` | Delete a file |
 
-### 카메라
+### Camera
 
-| 도구 | 설명 |
-|------|------|
-| `set_recording` | 카메라 녹화 on/off |
-| `set_timelapse` | 타임랩스 녹화 on/off |
+| Tool | Description |
+|------|-------------|
+| `set_recording` | Toggle camera recording |
+| `set_timelapse` | Toggle timelapse recording |
 
-### AMS / 필라멘트
+### AMS / Filament
 
-| 도구 | 설명 |
-|------|------|
-| `change_filament` | AMS 필라멘트 트레이 변경 |
-| `unload_filament` | 필라멘트 언로드 |
+| Tool | Description |
+|------|-------------|
+| `change_filament` | Switch to a different AMS tray |
+| `unload_filament` | Unload filament from extruder |
 
 ### G-code
 
-| 도구 | 설명 |
-|------|------|
-| `send_gcode` | 커스텀 G-code 명령 전송 (위험 명령 차단) |
+| Tool | Description |
+|------|-------------|
+| `send_gcode` | Send raw G-code (dangerous commands blocked) |
 
 ---
 
-## 프린터 지정 방법
+## Printer Targeting
 
-프린터 관련 도구에는 `printer` 파라미터를 사용할 수 있습니다:
+Every printer tool accepts an optional `printer` parameter:
 
-- **특정 프린터** — 프린터 ID 지정 (예: `"terran-barracks"`)
-- **전체 프린터** — `"all"` 입력 시 모든 프린터에 동시 실행
-- **자동 선택** — 프린터가 1대만 등록되어 있으면 생략 가능
-
----
-
-## 통신 방식
-
-| 프로토콜 | 포트 | 용도 |
-|----------|------|------|
-| MQTT (TLS) | 8883 | 명령 전송 및 상태 수신 |
-| FTP (implicit FTPS) | 990 | 파일 업로드/다운로드 |
+- **Specific printer** — use the printer ID (e.g., `"terran-barracks"`)
+- **All printers** — use `"all"` to run on every connected printer
+- **Auto-select** — omit the parameter when only one printer is configured
 
 ---
 
-## 문제 해결 (FAQ)
+## Communication
 
-### Claude Desktop에서 MCP 도구가 안 보여요
-- `claude_desktop_config.json`의 경로가 정확한지 확인하세요 (`\\` 두 개)
-- Claude Desktop을 완전히 종료(시스템 트레이에서도)하고 다시 시작하세요
-- 터미널에서 `node C:\...\dist\index.js`를 직접 실행해 에러가 없는지 확인하세요
-
-### 프린터에 연결이 안 돼요
-- 프린터와 컴퓨터가 **같은 네트워크**에 있는지 확인하세요
-- **LAN Only Mode**와 **Developer Mode**가 모두 켜져 있는지 확인하세요
-- IP 주소가 변경되었을 수 있습니다. 프린터 터치스크린에서 현재 IP를 확인하세요
-- `reconnect_printer` 도구를 사용해 재연결을 시도하세요
-
-### IP 주소가 자꾸 바뀌어요
-- 공유기 설정에서 해당 프린터에 **고정 IP(DHCP 예약)** 를 설정하세요
+| Protocol | Port | Purpose |
+|----------|------|---------|
+| MQTT (TLS) | 8883 | Commands and status updates |
+| FTP (implicit FTPS) | 990 | File upload/download |
 
 ---
 
-## 라이선스
+## Troubleshooting
 
-MIT — 원본 프로젝트 [griches/bambu-mcp](https://github.com/griches/bambu-mcp) 라이선스를 따릅니다.
+### MCP tools don't appear in Claude Desktop
+- Verify the path in `claude_desktop_config.json` uses `\\` (double backslash)
+- Fully quit Claude Desktop (including system tray) and relaunch
+- Run `node C:\...\dist\index.js` in a terminal to check for errors
+
+### Can't connect to the printer
+- Confirm the printer and computer are on the **same network**
+- Confirm both **LAN Only Mode** and **Developer Mode** are enabled
+- The IP address may have changed — check the printer's touchscreen
+- Try the `reconnect_printer` tool
+
+### IP address keeps changing
+- Set a **static IP (DHCP reservation)** for the printer in your router settings
+
+---
+
+## License
+
+MIT — see the [original project](https://github.com/griches/bambu-mcp) for details.
