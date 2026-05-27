@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "bambu": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\USER_55_DeepLearning\\Desktop\\workspace\\container\\Bambulab-Manager\\bambu-mcp\\dist\\index.js"
+      ]
+    }
+  },
+  "preferences": {
+    "coworkScheduledTasksEnabled": true,
+    "ccdScheduledTasksEnabled": true,
+    "sidebarMode": "chat",
+    "coworkWebSearchEnabled": true,
+    "remoteToolsDeviceName": "20255249-p03",
+    "epitaxyPrefs": {
+      "starred-local-code-sessions": [],
+      "starred-cowork-spaces": [],
+      "starred-session-groups": [],
+      "dframe-local-slice": {
+        "pinnedOrder": [],
+        "customGroupAssignments": {},
+        "customGroupOrder": {}
+      }
+    },
+    "bypassPermissionsGateByAccount": {
+      "b3181cb0-853e-4de4-8f44-7f10a4b5abe4": false
+    }
+  },
+  "coworkUserFilesPath": "C:\\Users\\USER_55_DeepLearning\\Documents\\Claude"
+}
