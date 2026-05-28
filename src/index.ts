@@ -13,10 +13,18 @@ import { registerCameraTools } from "./tools/camera.js";
 import { registerAmsTools } from "./tools/ams.js";
 import { registerGcodeTools } from "./tools/gcode.js";
 import { registerSigningTools } from "./tools/signing.js";
+import { BAMBU_ICON_DATA_URI } from "./icon.js";
 
 const server = new McpServer({
   name: "bambu-farm",
   version: "1.0.0",
+  icons: [
+    {
+      src: BAMBU_ICON_DATA_URI,
+      mimeType: "image/png",
+      sizes: ["128x128"],
+    },
+  ],
 });
 
 const fleet = new FleetManager();

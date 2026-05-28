@@ -11,6 +11,7 @@ interface PlateInfo {
   plate: number;
   filament_colors: string[];
   filament_ids: number[];
+  total_filament_slots?: number;
 }
 
 // Cache 3MF analysis results keyed by remote path to avoid re-downloading
@@ -57,7 +58,34 @@ async function detect3mfInfo(
       filamentIds = meta.filament_ids || [];
     } catch {}
 
-    const info = { plate, filament_colors: filamentColors, filament_ids: filamentIds };
+    // Extract total filament slot count from slice_info.config
+    let totalFilamentSlots: number | undefined;
+    try {
+      const sliceInfo = execSync(`unzip -p "${tmp}" "Metadata/slice_info.config"`, {
+        encoding: "utf-8",
+      });
+      const plateRegex = /<plate>([\s\S]*?)<\/plate>/g;
+      let plateSection;
+      while ((plateSection = plateRegex.exec(sliceInfo)) !== null) {
+        const content = plateSection[1];
+        const idxMatch = content.match(/key="index"\s+value="(\d+)"/);
+        if (idxMatch && parseInt(idxMatch[1], 10) === plate) {
+          const mapMatch = content.match(/key="filament_maps"\s+value="([^"]*)"/);
+          if (mapMatch) {
+            const slots = mapMatch[1].trim().split(/\s+/).filter((s) => s.length > 0);
+            totalFilamentSlots = slots.length;
+          }
+          break;
+        }
+      }
+    } catch {}
+
+    const info: PlateInfo = {
+      plate,
+      filament_colors: filamentColors,
+      filament_ids: filamentIds,
+      total_filament_slots: totalFilamentSlots,
+    };
     plateInfoCache.set(cacheKey, { info, timestamp: Date.now() });
     return info;
   } catch {
@@ -79,6 +107,7 @@ function buildAmsMapping(
   filamentColors: string[],
   filamentIds: number[],
   amsStatus: any,
+  totalFilamentSlots?: number,
 ): number[] | undefined {
   if (!amsStatus?.ams || !Array.isArray(amsStatus.ams)) return undefined;
   if (filamentColors.length === 0 || filamentIds.length === 0) return undefined;
@@ -96,9 +125,12 @@ function buildAmsMapping(
     }
   }
 
-  // For each filament color in the 3MF, find the matching AMS tray
+  // Use slice_info.config filament slot count if available, fall back to maxId+1
   const maxId = Math.max(...filamentIds);
-  const mapping = Array.from({ length: maxId + 1 }, (_, i) => i);
+  const slotCount = totalFilamentSlots
+    ? Math.max(totalFilamentSlots, maxId + 1)
+    : maxId + 1;
+  const mapping = Array.from({ length: slotCount }, (_, i) => i);
 
   for (let i = 0; i < filamentColors.length; i++) {
     const needed = filamentColors[i].replace("#", "").toUpperCase();
@@ -243,6 +275,7 @@ export function registerPrintControlTools(
       use_ams,
       nozzle_offset_cali,
     }) => {
+      const resolvedPath = path || "/";
       return fleet.executeOnPrinters(printer, async (conn) => {
         // Auto-detect plate and AMS mapping for 3MF files when not specified
         let resolvedPlate = plate;
@@ -250,7 +283,7 @@ export function registerPrintControlTools(
         const needs3mfDetection =
           file.toLowerCase().endsWith(".3mf") && (!plate || !ams_mapping);
         if (needs3mfDetection) {
-          const remotePath = `${(path || "/").replace(/\/$/, "")}/${file}`;
+          const remotePath = `${resolvedPath.replace(/\/$/, "")}/${file}`;
           const info = await detect3mfInfo(
             conn.config.host,
             conn.config.accessCode,
@@ -259,12 +292,12 @@ export function registerPrintControlTools(
           if (info) {
             if (!plate) resolvedPlate = info.plate;
             if (!ams_mapping) {
-              // Match filament colors from 3MF to printer's AMS trays
               const status = conn.mqtt.getCachedStatus();
               resolvedAmsMapping = buildAmsMapping(
                 info.filament_colors,
                 info.filament_ids,
                 status.ams,
+                info.total_filament_slots,
               );
             }
           }
@@ -272,7 +305,7 @@ export function registerPrintControlTools(
 
         const result = await conn.mqtt.printFile({
           file,
-          path,
+          path: resolvedPath,
           plate: resolvedPlate,
           ams_mapping: resolvedAmsMapping,
           bed_type,
@@ -293,6 +326,15 @@ export function registerPrintControlTools(
         if (isFail) {
           return `Failed to start print: ${resultStr}`;
         }
+
+        // Verify printer actually transitions to a printing state
+        await new Promise((r) => setTimeout(r, 3000));
+        const postStatus = await conn.mqtt.requestStatus();
+        const state = postStatus.gcode_state;
+        if (state === "IDLE" || state === "FAILED") {
+          return `Warning: Print command was accepted but printer remains in '${state}' state. The file '${file}' may not exist at path '${resolvedPath}'. Verify with get_status.`;
+        }
+
         return `Print started: ${file}\nPrinter response: ${resultStr}`;
       });
     },
@@ -330,13 +372,14 @@ export function registerPrintControlTools(
             );
           }
 
+          const resolvedPath = job.path || "/";
           let resolvedPlate = job.plate;
           let resolvedAmsMapping = job.ams_mapping;
           const needs3mfDetection =
             job.file.toLowerCase().endsWith(".3mf") &&
             (!job.plate || !job.ams_mapping);
           if (needs3mfDetection) {
-            const remotePath = `${(job.path || "/").replace(/\/$/, "")}/${job.file}`;
+            const remotePath = `${resolvedPath.replace(/\/$/, "")}/${job.file}`;
             const info = await detect3mfInfo(
               conn.config.host,
               conn.config.accessCode,
@@ -350,6 +393,7 @@ export function registerPrintControlTools(
                   info.filament_colors,
                   info.filament_ids,
                   status.ams,
+                  info.total_filament_slots,
                 );
               }
             }
@@ -357,7 +401,7 @@ export function registerPrintControlTools(
 
           const result = await conn.mqtt.printFile({
             file: job.file,
-            path: job.path,
+            path: resolvedPath,
             plate: resolvedPlate,
             ams_mapping: resolvedAmsMapping,
           });
@@ -370,6 +414,14 @@ export function registerPrintControlTools(
           if (isFail) {
             return `[${conn.config.name || job.printer}] Failed: ${resultStr}`;
           }
+
+          await new Promise((r) => setTimeout(r, 3000));
+          const postStatus = await conn.mqtt.requestStatus();
+          const state = postStatus.gcode_state;
+          if (state === "IDLE" || state === "FAILED") {
+            return `[${conn.config.name || job.printer}] Warning: Print command accepted but printer remains in '${state}'. File '${job.file}' may not exist at path '${resolvedPath}'.`;
+          }
+
           return `[${conn.config.name || job.printer}] Print started: ${job.file}`;
         }),
       );
