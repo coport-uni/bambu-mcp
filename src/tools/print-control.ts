@@ -72,7 +72,7 @@ async function detect3mfInfo(
         if (idxMatch && parseInt(idxMatch[1], 10) === plate) {
           const mapMatch = content.match(/key="filament_maps"\s+value="([^"]*)"/);
           if (mapMatch) {
-            const slots = mapMatch[1].trim().split(/\s+/).filter(s => s.length > 0);
+            const slots = mapMatch[1].trim().split(/\s+/).filter((s) => s.length > 0);
             totalFilamentSlots = slots.length;
           }
           break;
@@ -328,7 +328,7 @@ export function registerPrintControlTools(
         }
 
         // Verify printer actually transitions to a printing state
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise((r) => setTimeout(r, 3000));
         const postStatus = await conn.mqtt.requestStatus();
         const state = postStatus.gcode_state;
         if (state === "IDLE" || state === "FAILED") {
@@ -415,7 +415,7 @@ export function registerPrintControlTools(
             return `[${conn.config.name || job.printer}] Failed: ${resultStr}`;
           }
 
-          await new Promise(r => setTimeout(r, 3000));
+          await new Promise((r) => setTimeout(r, 3000));
           const postStatus = await conn.mqtt.requestStatus();
           const state = postStatus.gcode_state;
           if (state === "IDLE" || state === "FAILED") {
