@@ -4,3 +4,5 @@ dist/
 *.tsbuildinfo
 .mcp.json
 .claude/
+Todo.md
+mcpb-staging/

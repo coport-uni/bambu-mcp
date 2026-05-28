@@ -1,0 +1,51 @@
+{
+  "manifest_version": "0.2",
+  "name": "bambu-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for controlling multiple Bambu Lab 3D printers via MQTT and FTP. Manage print jobs, monitor status, control hardware, and transfer files.",
+  "author": {
+    "name": "griches"
+  },
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ],
+      "env": {}
+    }
+  },
+  "tools": [
+    { "name": "add_printer", "description": "Add a Bambu Lab printer to the fleet" },
+    { "name": "remove_printer", "description": "Remove a printer from the fleet" },
+    { "name": "reconnect_printer", "description": "Reconnect a printer or all printers" },
+    { "name": "list_printers", "description": "List all configured printers with connection status" },
+    { "name": "get_status", "description": "Get current status of a printer (progress, temps, AMS)" },
+    { "name": "get_version", "description": "Get firmware and module version information" },
+    { "name": "start_print", "description": "Start printing a file on a printer" },
+    { "name": "start_prints", "description": "Start prints on multiple printers in parallel" },
+    { "name": "pause_print", "description": "Pause a running print" },
+    { "name": "resume_print", "description": "Resume a paused print" },
+    { "name": "stop_print", "description": "Stop and cancel a print" },
+    { "name": "set_speed", "description": "Set print speed level" },
+    { "name": "set_light", "description": "Control chamber and work lights" },
+    { "name": "set_temperature", "description": "Set nozzle or bed temperature" },
+    { "name": "set_nozzle", "description": "Set nozzle diameter" },
+    { "name": "list_files", "description": "List files on printer storage via FTP" },
+    { "name": "upload_file", "description": "Upload a file to printer storage" },
+    { "name": "delete_file", "description": "Delete a file from printer storage" },
+    { "name": "download_file", "description": "Download a file from printer storage" },
+    { "name": "set_recording", "description": "Enable or disable camera recording" },
+    { "name": "set_timelapse", "description": "Enable or disable timelapse recording" },
+    { "name": "change_filament", "description": "Change AMS filament tray" },
+    { "name": "unload_filament", "description": "Unload current filament" },
+    { "name": "send_gcode", "description": "Send raw G-code commands to printer" },
+    { "name": "skip_objects", "description": "Skip specific objects during printing" },
+    { "name": "sign_message", "description": "Sign a message using Bambu app certificate" }
+  ],
+  "keywords": ["3d-printing", "bambu-lab", "printer", "mqtt", "iot"],
+  "license": "MIT"
+}
