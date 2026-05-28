@@ -6,6 +6,10 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for c
 
 ## What this fork adds
 
+- **MCPB bundle packaging** — one-click installation for Claude Desktop / Claude Code (`npm run build:mcpb`)
+- **MCP server icon** via SEP-973 `icons` field
+- **Fix start_print silent failure** — default path to `/` when omitted, post-print status verification
+- **Fix ams_mapping length mismatch** — extract filament slot count from 3MF for correct mapping
 - **Beginner-friendly setup guide** for first-time MCP and npm users
 - **Printer connection reference** (`bambu-printers.md`) for quick registration across environments
 - **Claude Desktop config example** (`claude_desktop_config.json`)
@@ -25,7 +29,22 @@ Should work with any Bambu Lab printer that supports MQTT over LAN (X1C, X1, P1P
 
 ---
 
-## Setup Guide (Step by Step)
+## Install via MCPB (Recommended)
+
+If you have the `.mcpb` bundle file, double-click it or drag it into Claude Desktop to install. No manual setup required.
+
+To build the bundle yourself:
+
+```powershell
+npm install
+npm run build:mcpb
+```
+
+This produces `bambu-mcp-1.0.0.mcpb` ready for distribution.
+
+---
+
+## Setup Guide (Manual, Step by Step)
 
 ### Step 1: Install Node.js
 
